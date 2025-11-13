@@ -1,0 +1,6 @@
+/* backend/static/css/doctor-style.css */
+body { background:#f6f8fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#222; }
+.upload-zone { border:2px dashed #dee2e6; border-radius:8px; background:#fff; cursor:pointer; }
+.upload-zone.dragover { background:#eef9ff; border-color:#0d6efd; }
+.pres-item { background:#fff; }
+.report-card { background:#fff; }

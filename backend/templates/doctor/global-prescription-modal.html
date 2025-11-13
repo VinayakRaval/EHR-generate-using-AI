@@ -1,0 +1,56 @@
+<!-- Global Generate Prescription Modal -->
+<div class="modal fade" id="generatePrescriptionModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Generate Prescription</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- STEP 1: Search patient -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Search Patient</label>
+          <input type="text" id="searchPatient" class="form-control"
+                 placeholder="Type patient name..." autocomplete="off">
+          <div id="patientSearchResults" class="list-group mt-1"></div>
+        </div>
+
+        <!-- Hidden selected patient -->
+        <input type="hidden" id="selectedPatientId">
+
+        <hr>
+
+        <!-- STEP 2: Prescription inputs -->
+        <h6 class="fw-bold">Diagnosis</h6>
+        <textarea id="diagnosis" class="form-control mb-3" rows="2"
+                  placeholder="Enter diagnosis"></textarea>
+
+        <h6 class="fw-bold">Prescription Notes</h6>
+        <textarea id="prescription_text" class="form-control mb-3" rows="3"
+                  placeholder="Enter prescription text..."></textarea>
+
+        <button id="voice-btn" class="btn btn-outline-secondary mb-3">🎤 Speak</button>
+
+        <!-- STEP 3: Medicine rows -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <h6 class="fw-bold">Medicines</h6>
+          <button id="addMedicineRow" class="btn btn-sm btn-primary">
+            + Add Medicine
+          </button>
+        </div>
+
+        <div id="medicines-container" class="mt-2"></div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-success" id="savePrescriptionBtn">Save Prescription</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+</div>

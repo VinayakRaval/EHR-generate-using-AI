@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Your Prescriptions — {{ patient.first_name }}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <h2>🧾 Your Prescriptions</h2>
+    <nav>
+      <a href="/patient/dashboard">Dashboard</a>
+      <a href="/patient/view-reports">Lab Reports</a>
+      <a href="/patient/export-data">Export</a>
+      <a href="/auth/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main style="max-width:900px;margin:30px auto;">
+    {% if prescriptions %}
+      {% for p in prescriptions %}
+        <div style="background:#fff;padding:14px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+          <div style="display:flex;justify-content:space-between;">
+            <div><strong>{{ p.created_at }}</strong> — Dr. {{ p.doctor_name }}</div>
+            <div>Prescription ID: {{ p.prescription_id }}</div>
+          </div>
+          <p><strong>Diagnosis:</strong> {{ p.diagnosis }}</p>
+          <p><strong>Prescription:</strong> {{ p.prescription_text }}</p>
+          <div style="margin-top:8px;">
+            <a href="/patient/export-data" style="text-decoration:none;padding:8px 12px;background:#007bff;color:white;border-radius:6px;">Export All</a>
+            <a href="/doctor/export_pdf/{{ p.prescription_id }}" style="text-decoration:none;padding:8px 12px;background:#28a745;color:white;border-radius:6px;margin-left:8px;">PDF (Doctor)</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No prescriptions found.</p>
+    {% endif %}
+  </main>
+</body>
+</html>

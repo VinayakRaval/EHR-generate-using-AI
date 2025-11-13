@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EHR — Login</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>🔐 Login to EHR System</h2>
+    <form action="http://localhost:5000/auth/login" method="POST">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="Enter your email" required />
+
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required />
+
+      <button type="submit">Login</button>
+      <p class="note">Doctor / Admin login here. Patients create password at first login.</p>
+    </form>
+    <a href="signup.html" class="link">Create account (Doctor)</a>
+  </div>
+</body>
+</html>

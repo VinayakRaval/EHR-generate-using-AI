@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Manage Patients — Admin Panel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body { margin:0; font-family:Inter, sans-serif; background:#f5f8fa; color:#333; display:flex; min-height:100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width:260px;
+      background:linear-gradient(180deg,#005eea,#009dff);
+      color:#fff;
+      padding:22px 0;
+      display:flex;
+      flex-direction:column;
+      position:fixed;
+      left:0;
+      top:0;
+      height:100%;
+      z-index:999;
+      transition:0.3s;
+    }
+    .sidebar h2 { text-align:center; margin:0 0 22px 0; font-weight:700; }
+    .sidebar a {
+      color:#fff; padding:12px 28px; display:block;
+      text-decoration:none; font-weight:600;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      background:rgba(255,255,255,0.12);
+      border-left:4px solid #fff;
+    }
+
+    /* Close Button */
+    .close-btn {
+      display:none;
+      font-size:28px;
+      position:absolute; top:10px; right:15px;
+      cursor:pointer; color:#fff;
+    }
+
+    @media(max-width:900px){
+      .sidebar { left:-280px; }
+      .sidebar.open { left:0; }
+      .close-btn { display:block; }
+    }
+
+    /* Topbar */
+    .main { flex:1; margin-left:260px; display:flex; flex-direction:column; transition:0.3s; }
+    .topbar {
+      background:#fff; padding:14px 24px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid #e6eefc;
+    }
+    .menu-toggle { font-size:24px; cursor:pointer; display:none; }
+
+    @media(max-width:900px){
+      .menu-toggle{ display:block; }
+      .main{ margin-left:0; }
+    }
+
+    /* Content */
+    .content { padding:26px; }
+    .table-box {
+      background:#fff; padding:16px;
+      border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.05);
+      overflow-x:auto;
+    }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:12px; border-bottom:1px solid #f1f5ff; }
+    th { background:#f6fbff; color:#007bff; }
+
+    .btn {
+      background:#007bff; color:#fff; padding:8px 12px;
+      border-radius:8px; border:none; cursor:pointer; font-weight:600;
+    }
+    .btn.danger { background:#ff4040; }
+    .btn.ghost { background:#fff; border:1px solid #007bff; color:#007bff; }
+
+    /* Modal */
+    .modal-backdrop {
+      position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      display:none; align-items:center; justify-content:center;
+      z-index:99999;
+    }
+    .modal {
+      background:#fff; padding:22px;
+      border-radius:12px; width:600px; max-width:95%;
+    }
+    .modal h3 { margin:0 0 12px 0; }
+    .form-row { display:flex; gap:12px; margin-bottom:12px; }
+    .form-row input, .form-row select {
+      flex:1; padding:10px; border:1px solid #e6eefc; border-radius:8px;
+    }
+
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
+  </style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="toggleSidebar()">×</span>
+
+    <h2>⚙️ Admin Panel</h2>
+
+    <a href="/admin/dashboard">📊 Admin Dashboard</a>
+    <a href="/admin/manage-doctors">🩺 Manage Doctors</a>
+    <a href="/admin/manage-patients" class="active">👨‍⚕️ Manage Patients</a>
+    <a href="/admin/audit-log">📜 Audit Log</a>
+    <a href="/auth/logout">🚪 Logout</a>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+      <span class="menu-toggle" onclick="toggleSidebar()">☰</span>
+      <h2>Manage Patients</h2>
+      <button class="btn" onclick="openAddModal()">➕ Add Patient</button>
+  </div>
+
+  <div class="content">
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Doctor</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for p in patients %}
+          <tr>
+            <td>{{ p.patient_id }}</td>
+            <td>{{ p.first_name }} {{ p.last_name }}</td>
+            <td>{{ p.username }}</td>
+            <td>{{ p.doctor_name or 'Unassigned' }}</td>
+            <td>{{ p.phone }}</td>
+
+            <td>
+              <button class="btn ghost"
+                onclick="openEditModal(
+                  '{{ p.patient_id }}',
+                  '{{ p.first_name }}',
+                  '{{ p.last_name }}',
+                  '{{ p.username }}',
+                  '{{ p.phone }}',
+                  '{{ p.dob }}',
+                  '{{ p.doctor_id }}'
+                )">Edit</button>
+
+              <a class="btn danger" href="/admin/manage-patients/delete/{{ p.patient_id }}"
+                onclick="return confirm('Delete this patient?')">Delete</a>
+            </td>
+
+          </tr>
+          {% else %}
+          <tr><td colspan="6">No patients found.</td></tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal">
+
+    <h3 id="modalTitle">Add Patient</h3>
+
+    <form id="patientForm" method="POST" action="/admin/manage-patients">
+
+      <input type="hidden" name="patient_id" id="patient_id" />
+
+      <div class="form-row">
+        <input type="text" name="first_name" id="first_name" placeholder="First Name" required />
+        <input type="text" name="last_name" id="last_name" placeholder="Last Name" />
+      </div>
+
+      <div class="form-row">
+        <select name="doctor_id" id="doctor_id">
+          <option value="">Assign Doctor (optional)</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+
+        <input type="text" name="username" id="username" placeholder="Username (required)" required />
+      </div>
+
+      <div class="form-row">
+        <input type="text" name="phone" id="phone" placeholder="Phone" />
+        <input type="date" name="dob" id="dob" placeholder="Date of Birth" />
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn">Save</button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+function openAddModal(){
+    document.getElementById("modalTitle").innerText = "Add Patient";
+    document.getElementById("patientForm").action = "/admin/manage-patients";
+
+    document.getElementById("patient_id").value = "";
+    document.getElementById("first_name").value = "";
+    document.getElementById("last_name").value = "";
+    document.getElementById("doctor_id").value = "";
+    document.getElementById("username").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("dob").value = "";
+
+    document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function openEditModal(id,first,last,username,phone,dob,doctor_id){
+    document.getElementById("modalTitle").innerText = "Edit Patient";
+    document.getElementById("patientForm").action = "/admin/manage-patients/edit";
+
+    document.getElementById("patient_id").value = id;
+    document.getElementById("first_name").value = first;
+    document.getElementById("last_name").value = last;
+    document.getElementById("username").value = username;
+    document.getElementById("phone").value = phone;
+    document.getElementById("dob").value = dob;
+    document.getElementById("doctor_id").value = doctor_id;
+
+    document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function closeModal(){
+    document.getElementById("modalBackdrop").style.display = "none";
+}
+</script>
+
+</body>
+</html>

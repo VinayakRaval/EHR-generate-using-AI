@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Patient Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body{margin:0;font-family:Inter, sans-serif;background:#f5f8fa;color:#222}
+    .container{max-width:1000px;margin:20px auto;padding:18px}
+    .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:12px}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    .btn{background:#007bff;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eef4ff;text-align:left}
+    th{background:#f6fbff;color:#007bff;font-weight:700}
+    .meta{color:#666;font-size:14px}
+    @media(max-width:700px){ .top{flex-direction:column;gap:8px} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <div>
+        <h2>Welcome, {{ patient.first_name }} {{ patient.last_name }}</h2>
+        <div class="meta">Assigned Doctor: {{ patient.doctor_name or '—' }}</div>
+      </div>
+      <div>
+        <a class="btn" href="/auth/logout">Logout</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="font-weight:700">Total Prescriptions</div>
+          <div style="font-size:22px">{{ patient.total_prescriptions or 0 }}</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700">Lab Reports</div>
+          <div style="font-size:22px">{{ patient.total_reports or 0 }}</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700">Last Visit</div>
+          <div style="font-size:22px">{{ patient.last_visit or '-' }}</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700">Exported</div>
+          <div style="font-size:22px">{{ patient.exports_count or 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Prescriptions</h4>
+      <table>
+        <thead><tr><th>Date</th><th>Doctor</th><th>Diagnosis</th><th>Prescription</th><th>Download</th></tr></thead>
+        <tbody>
+          {% for pres in prescriptions %}
+          <tr>
+            <td>{{ pres.created_at }}</td>
+            <td>{{ pres.doctor_name }}</td>
+            <td>{{ pres.diagnosis }}</td>
+            <td>{{ pres.prescription_text }}</td>
+            <td><a class="btn" href="/patient/prescription/{{ pres.prescription_id }}/pdf">PDF</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="text-align:center">No prescriptions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h4>Lab Reports</h4>
+      <table>
+        <thead><tr><th>Date</th><th>Name</th><th>File</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for r in reports %}
+          <tr>
+            <td>{{ r.upload_date }}</td>
+            <td>{{ r.report_name }}</td>
+            <td>{{ r.report_file }}</td>
+            <td><a class="btn" href="/patient/report/{{ r.report_id }}/download">Download</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" style="text-align:center">No reports.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

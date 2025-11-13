@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Audit Log — Admin Panel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body { margin:0; font-family:Inter, sans-serif; background:#f5f8fa; color:#333; display:flex; min-height:100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width:260px;
+      background:linear-gradient(180deg,#005eea,#009dff);
+      color:#fff;
+      padding:22px 0;
+      display:flex;
+      flex-direction:column;
+      position:fixed;
+      left:0;
+      top:0;
+      height:100%;
+      z-index:9999;
+      transition:0.3s;
+    }
+    .sidebar h2 { text-align:center; margin:0 0 22px 0; font-weight:700; }
+    .sidebar a {
+      color:#fff; padding:12px 28px; display:block;
+      text-decoration:none; font-weight:600;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      background:rgba(255,255,255,0.12);
+      border-left:4px solid #fff;
+    }
+
+    /* Close sidebar button */
+    .close-btn {
+      display:none;
+      position:absolute;
+      top:10px;
+      right:15px;
+      font-size:28px;
+      cursor:pointer;
+      color:#fff;
+    }
+
+    @media(max-width:900px){
+      .sidebar { left:-280px; }
+      .sidebar.open { left:0; }
+      .close-btn { display:block; }
+    }
+
+    /* Main Wrapper */
+    .main { flex:1; margin-left:260px; display:flex; flex-direction:column; transition:0.3s; }
+    @media(max-width:900px){ .main{ margin-left:0; } }
+
+    /* Topbar */
+    .topbar {
+      background:#fff;
+      padding:14px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e6eefc;
+    }
+    .menu-toggle {
+      display:none;
+      font-size:24px;
+      cursor:pointer;
+    }
+    @media(max-width:900px){
+      .menu-toggle{ display:block; }
+    }
+
+    /* Content */
+    .content { padding:26px; }
+    .table-box {
+      background:#fff;
+      padding:16px;
+      border-radius:12px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.05);
+      overflow-x:auto;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+    }
+    th, td {
+      padding:12px;
+      border-bottom:1px solid #eef2ff;
+    }
+    th {
+      background:#f6fbff;
+      color:#007bff;
+      font-weight:700;
+      text-align:left;
+    }
+    .empty {
+      text-align:center;
+      padding:20px;
+      color:#888;
+      font-size:15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="toggleSidebar()">×</span>
+
+    <h2>⚙️ Admin Panel</h2>
+
+    <a href="/admin/dashboard">📊 Admin Dashboard</a>
+    <a href="/admin/manage-doctors">🩺 Manage Doctors</a>
+    <a href="/admin/manage-patients">👨‍⚕️ Manage Patients</a>
+    <a href="/admin/audit-log" class="active">📜 Audit Log</a>
+    <a href="/auth/logout">🚪 Logout</a>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+      <span class="menu-toggle" onclick="toggleSidebar()">☰</span>
+      <h2>Audit Log</h2>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Role</th>
+            <th>User ID</th>
+            <th>Action</th>
+            <th>Date</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.log_id }}</td>
+            <td>{{ log.role }}</td>
+            <td>{{ log.user_id }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.ip_address }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="empty">
+              No audit logs found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

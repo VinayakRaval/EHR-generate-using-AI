@@ -1,0 +1,186 @@
+{# backend/templates/doctor/patient-profile.html #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Patient File — {{ patient.first_name }} {{ patient.last_name }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/doctor-style.css') }}" rel="stylesheet">
+  <style>
+    .upload-zone { border:2px dashed #e3e8ef; background:#fff; padding:18px; border-radius:8px; text-align:center; cursor:pointer; }
+    .upload-zone.dragover { border-color:#0d6efd; background:#eef9ff; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/doctor/dashboard">EHR — Doctor Panel</a>
+    <div class="d-flex align-items-center">
+      <span class="me-3 small text-muted">Logged as: {{ session.doctor.name if session.doctor else 'Doctor' }}</span>
+      <a href="/auth/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1200;"></div>
+
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h2 class="mb-0">Patient File — {{ patient.first_name }} {{ patient.last_name }}</h2>
+      <div class="text-muted small">DOB: {{ patient.dob or '-' }} • Phone: {{ patient.phone or '-' }} • Doctor: {{ patient.doctor_name or '-' }}</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" id="open-add-prescription-global" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">➕ Add Prescription</button>
+      <a class="btn btn-outline-secondary" href="/doctor/export_pdf/{{ patient.patient_id }}">Export Full PDF</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Recent Prescriptions</h6>
+          <div class="pres-list">
+            {% for pres in prescriptions %}
+              <div class="pres-item mb-2 p-3 border rounded">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <strong>{{ pres.diagnosis }}</strong>
+                    <div class="small text-muted mt-1">{{ pres.prescription_text }}</div>
+                  </div>
+                  <div class="text-end">
+                    <a class="btn btn-outline-secondary btn-sm mb-1" href="/doctor/prescription/{{ pres.prescription_id }}/pdf">PDF</a>
+                    <div class="small text-muted">{{ pres.created_at }}</div>
+                  </div>
+                </div>
+                {% if pres.medicines %}
+                  <ul class="mt-2 mb-0">
+                    {% for m in pres.medicines %}
+                      <li>{{ m.name }} {% if m.dose %}- {{ m.dose }}{% endif %} {% if m.freq %}({{ m.freq }}){% endif %} {% if m.duration %}- {{ m.duration }}{% endif %}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="small text-muted">No prescriptions found.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Report -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Upload Lab Report</h6>
+
+          <div id="report-dropzone" class="upload-zone p-3 mb-2">
+            <p class="mb-1">Drag & drop report file here or click to choose</p>
+            <div>
+              <button id="report-upload-btn" class="btn btn-outline-primary btn-sm">Choose file</button>
+            </div>
+            <input id="report-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" />
+          </div>
+
+          <div class="progress d-none mt-2">
+            <div id="report-progress" class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+          </div>
+
+          <h6 class="mt-3">Previous Reports</h6>
+          <div class="row reports-grid g-2">
+            {% for r in reports %}
+              <div class="col-md-6">
+                <div class="p-2 border rounded report-card d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong>{{ r.report_name }}</strong>
+                    <div class="small text-muted">{{ r.upload_date }}</div>
+                  </div>
+                  <div>
+                    <a class="btn btn-outline-primary btn-sm" href="/doctor/report/{{ r.report_id }}/download">Download</a>
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="small text-muted">No lab reports.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card p-3 mb-3">
+        <h6>Summary</h6>
+        <div class="small text-muted">Total Prescriptions: <strong>{{ patient.total_prescriptions or 0 }}</strong></div>
+        <div class="small text-muted">Total Reports: <strong>{{ patient.total_reports or 0 }}</strong></div>
+        <div class="small text-muted">Last Visit: <strong>{{ patient.last_visit or '-' }}</strong></div>
+      </div>
+
+      <div class="card p-3">
+        <h6>Quick Actions</h6>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">Add Prescription</button>
+          <a class="btn btn-outline-secondary" href="/doctor/prescriptions/{{ patient.patient_id }}">Open all prescriptions (API)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Prescription Modal (local & also used by dashboard global flow) -->
+<div class="modal fade" id="addPrescriptionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form id="prescription-form">
+        <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Prescription</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Diagnosis</label>
+            <div class="input-group">
+              <textarea class="form-control" name="diagnosis" rows="2"></textarea>
+              <button id="diag-voice" type="button" class="btn btn-outline-secondary" title="Voice input">🎤</button>
+            </div>
+            <div id="error-diagnosis" class="form-text text-danger d-none">Diagnosis required.</div>
+          </div>
+
+          <div class="mb-3 d-flex gap-2">
+            <div style="flex:1;">
+              <label class="form-label">Prescription Text</label>
+              <div class="input-group">
+                <textarea class="form-control" name="prescription_text" rows="4"></textarea>
+                <button id="voice-btn" type="button" class="btn btn-outline-secondary" title="Voice input">🎤</button>
+              </div>
+              <div id="error-text" class="form-text text-danger d-none">Prescription text required.</div>
+            </div>
+          </div>
+
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <label class="form-label mb-0">Medicines (optional)</label>
+            <button id="add-med-btn" type="button" class="btn btn-sm btn-primary">+ Add Medicine</button>
+          </div>
+
+          <div id="meds-container" class="mt-2"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button id="prescription-submit-btn" type="submit" class="btn btn-success">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/doctor-prescription.js') }}"></script>
+</body>
+</html>

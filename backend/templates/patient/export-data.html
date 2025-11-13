@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Export Data — {{ patient.first_name }}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <h2>📤 Export Your Data</h2>
+    <nav>
+      <a href="/patient/dashboard">Dashboard</a>
+      <a href="/patient/view-prescriptions">Prescriptions</a>
+      <a href="/patient/view-reports">Reports</a>
+      <a href="/auth/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main style="max-width:700px;margin:40px auto;">
+    <form method="POST">
+      <label>Select export format:</label>
+      <select name="export_type" required style="width:100%;padding:10px;margin-top:8px;border-radius:6px;border:1px solid #ccc;">
+        <option value="csv">CSV (spreadsheet)</option>
+        <option value="pdf">PDF (summary)</option>
+      </select>
+
+      <button type="submit" style="margin-top:14px;padding:10px 14px;background:#007bff;color:white;border:none;border-radius:6px;">Export Now</button>
+    </form>
+
+    <p style="margin-top:20px;color:#555;">Exports are generated and saved under <code>/static/exports</code>. A download link will open automatically after generation.</p>
+  </main>
+</body>
+</html>

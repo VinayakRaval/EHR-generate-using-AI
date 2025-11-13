@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Manage Doctors — Admin Panel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body { margin:0; font-family:Inter, sans-serif; background:#f5f8fa; color:#333; display:flex; min-height:100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width:260px;
+      background:linear-gradient(180deg,#005eea,#009dff);
+      color:#fff;
+      padding:22px 0;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      transition:0.3s;
+    }
+    .sidebar h2 { text-align:center; margin:0 0 24px 0; font-weight:700; }
+    .sidebar a {
+      color:#fff; padding:12px 28px; display:block;
+      text-decoration:none; font-weight:600;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      background:rgba(255,255,255,0.12);
+      border-left:4px solid #fff;
+    }
+
+    /* Close Button */
+    .close-btn {
+      display:none;
+      font-size:26px;
+      position:absolute; top:10px; right:15px;
+      cursor:pointer; color:#fff;
+    }
+
+    @media(max-width:900px){
+      .sidebar { position:fixed; left:-280px; top:0; height:100%; z-index:9999; }
+      .sidebar.open { left:0; }
+      .close-btn { display:block; }
+    }
+
+    /* Topbar */
+    .main { flex:1; display:flex; flex-direction:column; }
+    .topbar {
+      background:#fff; padding:14px 24px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid #e6eefc;
+    }
+    .menu-toggle { font-size:24px; cursor:pointer; display:none; }
+    @media(max-width:900px){ .menu-toggle{display:block;} }
+
+    /* Content */
+    .content { padding:26px; }
+    .table-box {
+      background:#fff; padding:16px;
+      border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.05);
+    }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:12px; border-bottom:1px solid #f1f5ff; }
+    th { background:#f6fbff; color:#007bff; }
+
+    .btn {
+      background:#007bff; color:#fff; padding:8px 12px;
+      border-radius:8px; border:none; cursor:pointer; font-weight:600;
+    }
+    .btn.danger { background:#ff4040; }
+    .btn.ghost { background:#fff; border:1px solid #007bff; color:#007bff; }
+
+    /* Modal */
+    .modal-backdrop {
+      position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      display:none; align-items:center; justify-content:center;
+      z-index:99999;
+    }
+    .modal {
+      background:#fff; padding:22px;
+      border-radius:12px; width:520px; max-width:95%;
+    }
+    .modal h3 { margin:0 0 12px 0; }
+    .form-row { display:flex; gap:10px; margin-bottom:12px; }
+    .form-row input { flex:1; padding:10px; border:1px solid #e6eefc; border-radius:8px; }
+
+    .modal-footer { display:flex; justify-content:flex-end; gap:8px; }
+  </style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="toggleSidebar()">×</span>
+
+    <h2>⚙️ Admin Panel</h2>
+
+    <a href="/admin/dashboard">📊 Admin Dashboard</a>
+    <a href="/admin/manage-doctors" class="active">🩺 Manage Doctors</a>
+    <a href="/admin/manage-patients">👨‍⚕️ Manage Patients</a>
+    <a href="/admin/audit-log">📜 Audit Log</a>
+    <a href="/auth/logout">🚪 Logout</a>
+</div>
+
+
+<!-- Main -->
+<div class="main">
+
+  <div class="topbar">
+      <span class="menu-toggle" onclick="toggleSidebar()">☰</span>
+      <h2>Manage Doctors</h2>
+      <button class="btn" onclick="openAddModal()">➕ Add Doctor</button>
+  </div>
+
+  <div class="content">
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Specialization</th><th>Phone</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for d in doctors %}
+          <tr>
+            <td>{{ d.doctor_id }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.email }}</td>
+            <td>{{ d.specialization }}</td>
+            <td>{{ d.phone }}</td>
+            <td>
+              <button class="btn ghost"
+                onclick="openEditModal('{{ d.doctor_id }}','{{ d.name }}','{{ d.email }}','{{ d.specialization }}','{{ d.phone }}')">
+                Edit
+              </button>
+              <a class="btn danger" href="/admin/manage-doctors/delete/{{ d.doctor_id }}" onclick="return confirm('Delete doctor?')">Delete</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6">No doctors found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Add Doctor</h3>
+
+    <form id="doctorForm" method="POST" action="/admin/manage-doctors">
+      <input type="hidden" name="doctor_id" id="doctor_id"/>
+
+      <div class="form-row">
+        <input type="text" name="name" id="name" placeholder="Full Name" required />
+        <input type="email" name="email" id="email" placeholder="Email" required />
+      </div>
+
+      <div class="form-row">
+        <input type="text" name="specialization" id="specialization" placeholder="Specialization" />
+        <input type="text" name="phone" id="phone" placeholder="Phone" />
+      </div>
+
+      <div class="form-row">
+        <input type="password" name="password" id="password" placeholder="Password (optional)" />
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+function openAddModal(){
+    document.getElementById("modalTitle").innerText = "Add Doctor";
+    document.getElementById("doctorForm").action = "/admin/manage-doctors";
+
+    document.getElementById("doctor_id").value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("specialization").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("password").value = "";
+
+    document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function openEditModal(id,name,email,specialization,phone){
+    document.getElementById("modalTitle").innerText = "Edit Doctor";
+    document.getElementById("doctorForm").action = "/admin/manage-doctors/edit";
+
+    document.getElementById("doctor_id").value = id;
+    document.getElementById("name").value = name;
+    document.getElementById("email").value = email;
+    document.getElementById("specialization").value = specialization;
+    document.getElementById("phone").value = phone;
+
+    document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function closeModal(){
+    document.getElementById("modalBackdrop").style.display = "none";
+}
+</script>
+
+</body>
+</html>

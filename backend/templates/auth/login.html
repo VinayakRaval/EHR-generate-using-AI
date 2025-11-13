@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>EHR Login — Role-Based Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== Basic Styling ===== */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #007bff 0%, #00c6ff 100%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      width: 400px;
+      max-width: 90%;
+      padding: 40px 35px;
+      text-align: center;
+      transition: 0.3s;
+    }
+
+    .login-card:hover {
+      transform: translateY(-3px);
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    p.subtext {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 12px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .footer {
+      margin-top: 20px;
+      color: #888;
+      font-size: 13px;
+    }
+
+    .footer a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .flash {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .flash.success { background: #d4edda; color: #155724; }
+    .flash.danger  { background: #f8d7da; color: #721c24; }
+    .flash.info    { background: #d1ecf1; color: #0c5460; }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <h2>🔐 EHR Login</h2>
+    <p class="subtext">Access your AI-powered health system</p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Login Form -->
+    <form action="/auth/login" method="POST">
+      <label for="role">Select Role</label>
+      <select name="role" id="role" required>
+        <option value="">-- Choose Role --</option>
+        <option value="admin">Admin</option>
+        <option value="doctor">Doctor</option>
+        <option value="patient">Patient</option>
+      </select>
+
+      <label for="identifier">Email or Username</label>
+      <input type="text" id="identifier" name="identifier" placeholder="Enter your email or username" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required />
+
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="footer">
+      <p>Having trouble? <a href="#">Contact Support</a></p>
+    </div>
+  </div>
+
+  <!-- Optional auto-hide flash messages -->
+  <script>
+    setTimeout(() => {
+      document.querySelectorAll('.flash').forEach(el => el.remove());
+    }, 4000);
+  </script>
+</body>
+</html>

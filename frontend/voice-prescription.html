@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Voice Prescription</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <h2>🎤 AI Voice-to-Text Prescription</h2>
+  <button class="btn-primary" onclick="startOffline()">🎧 Speak (Offline)</button>
+  <button class="btn-secondary" onclick="startOnline()">🌐 Whisper AI</button>
+
+  <div id="status"></div>
+  <textarea id="result" placeholder="Prescription text will appear here..."></textarea>
+
+  <script>
+    async function startOffline() {
+      document.getElementById('status').innerText = "🎙️ Listening...";
+      const res = await axios.post('http://localhost:5000/doctor/voice-prescription');
+      document.getElementById('result').value = res.data.transcription;
+      document.getElementById('status').innerText = "✅ Done!";
+    }
+    async function startOnline() {
+      document.getElementById('status').innerText = "🌐 Sending to AI...";
+      const res = await axios.post('http://localhost:5000/doctor/voice-prescription?mode=online');
+      document.getElementById('result').value = res.data.transcription;
+      document.getElementById('status').innerText = "✅ AI Transcribed!";
+    }
+  </script>
+</body>
+</html>

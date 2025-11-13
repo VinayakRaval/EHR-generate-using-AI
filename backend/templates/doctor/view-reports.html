@@ -1,0 +1,61 @@
+{# backend/templates/doctor/view-reports.html #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>All Reports — Doctor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/doctor-style.css') }}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="/doctor/dashboard">EHR — Doctor</a>
+    <a href="/auth/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <h4>Lab Reports</h4>
+  <div class="mb-3">
+    <a class="btn btn-primary" href="#" onclick="document.getElementById('fileInput').click(); return false;">Upload New</a>
+    <input id="fileInput" type="file" style="display:none;" onchange="uploadFile(this.files[0])" />
+  </div>
+
+  <div class="list-group">
+    {% for r in reports %}
+      <div class="list-group-item d-flex justify-content-between align-items-start">
+        <div>
+          <strong>{{ r.report_name }}</strong>
+          <div class="small text-muted">Patient: {{ r.patient_name or r.patient_id }} • {{ r.upload_date }}</div>
+        </div>
+        <div>
+          <a class="btn btn-outline-primary btn-sm" href="/doctor/report/{{ r.report_id }}/download">Download</a>
+        </div>
+      </div>
+    {% else %}
+      <div class="small text-muted">No reports yet.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function uploadFile(file) {
+  if (!file) return alert("No file chosen.");
+  // minimal upload - calls /doctor/upload-report
+  const patientId = prompt("Enter patient id for this report:");
+  if (!patientId) return;
+  const fd = new FormData();
+  fd.append("patient_id", patientId);
+  fd.append("report_name", file.name);
+  fd.append("file", file);
+  fetch("/doctor/upload-report", { method:"POST", body: fd, credentials:"same-origin" })
+    .then(r=>r.json()).then(j=>{
+      if (j.status === "success") { alert("Uploaded"); location.reload(); }
+      else alert(j.message || "Upload failed");
+    }).catch(e=> alert("Upload error"));
+}
+</script>
+</body>
+</html>

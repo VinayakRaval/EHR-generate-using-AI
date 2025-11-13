@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Add Prescription — Doctor</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f7fb; padding: 40px; }
+    form { max-width: 700px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    select, textarea, input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+    .voice-btn { background: #28a745; margin-top: 10px; }
+    .voice-btn:hover { background: #1e7e34; }
+    .status { text-align: center; color: green; font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+  <h2 style="text-align:center;">🩺 Add Prescription (with Voice AI)</h2>
+  <form method="POST">
+    <label for="patient_id">Select Patient</label>
+    <select name="patient_id" required>
+      {% for patient in patients %}
+      <option value="{{ patient.patient_id }}">{{ patient.first_name }} {{ patient.last_name }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="diagnosis">Diagnosis</label>
+    <textarea id="diagnosis" name="diagnosis" rows="2" placeholder="e.g. Fever, cough..." required></textarea>
+
+    <label for="prescription_text">Prescription</label>
+    <textarea id="prescription_text" name="prescription_text" rows="5" placeholder="e.g. Paracetamol 500mg twice a day..." required></textarea>
+
+    <div style="text-align:center;">
+      <button type="button" class="voice-btn" onclick="startVoice()">🎤 Speak Prescription (Offline)</button>
+      <button type="button" class="voice-btn" onclick="startVoiceOnline()">🌐 Use Whisper AI</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <button type="submit">💾 Save Prescription</button>
+  </form>
+
+  <script>
+    async function startVoice() {
+      document.getElementById('status').innerText = "🎧 Listening...";
+      try {
+        const res = await axios.post('/doctor/voice-prescription');
+        const text = res.data.transcription;
+        document.getElementById('prescription_text').value = text;
+
+        // Auto-fill diagnosis if phrase detected
+        if (text.toLowerCase().includes("fever")) document.getElementById('diagnosis').value = "Fever";
+        else if (text.toLowerCase().includes("infection")) document.getElementById('diagnosis').value = "Infection";
+
+        document.getElementById('status').innerText = "✅ Transcription Complete!";
+      } catch (err) {
+        document.getElementById('status').innerText = "❌ Error processing voice.";
+      }
+    }
+
+    async function startVoiceOnline() {
+      document.getElementById('status').innerText = "🌐 Sending audio to AI...";
+      try {
+        const res = await axios.post('/doctor/voice-prescription?mode=online');
+        const text = res.data.transcription;
+        document.getElementById('prescription_text').value = text;
+        document.getElementById('status').innerText = "✅ AI Transcription Complete!";
+      } catch (err) {
+        document.getElementById('status').innerText = "❌ Whisper AI Error.";
+      }
+    }
+  </script>
+</body>
+</html>

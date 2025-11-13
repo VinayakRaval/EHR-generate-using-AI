@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Voice Prescription — Doctor</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f7fb; text-align: center; margin-top: 50px; }
+    button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #0056b3; }
+    textarea { width: 80%; height: 250px; margin-top: 20px; padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    .status { color: green; margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>🎙️ AI Voice-to-Text Prescription</h2>
+  <p>Click the button and start speaking your prescription clearly.</p>
+
+  <button onclick="startTranscription()">Start Voice Input (Offline)</button>
+  <button onclick="startOnline()">Use Whisper AI (Online)</button>
+
+  <div class="status" id="status"></div>
+
+  <textarea id="result" placeholder="Your prescription text will appear here..."></textarea>
+
+  <script>
+    async function startTranscription() {
+      document.getElementById('status').innerText = "🎧 Listening...";
+      const res = await axios.post('/doctor/voice-prescription');
+      document.getElementById('result').value = res.data.transcription;
+      document.getElementById('status').innerText = "✅ Transcription Complete!";
+    }
+
+    async function startOnline() {
+      document.getElementById('status').innerText = "🌐 Sending audio to AI...";
+      const res = await axios.post('/doctor/voice-prescription?mode=online');
+      document.getElementById('result').value = res.data.transcription;
+      document.getElementById('status').innerText = "✅ AI Transcription Complete!";
+    }
+  </script>
+
+</body>
+</html>
